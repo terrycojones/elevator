@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 from elevated.constants import (
     DEFAULT_FLOORS,
     END,
@@ -21,11 +23,13 @@ class Elevator:
         floors=DEFAULT_FLOORS,
         openDoorDelay=DEFAULT_OPEN_DOOR_DELAY,
         interFloorDelay=DEFAULT_INTER_FLOOR_DELAY,
+        testDir=None,
     ):
         self.queue = queue
         self.floors = floors
         self.openDoorDelay = openDoorDelay
         self.interFloorDelay = interFloorDelay
+        self.testDir = testDir
         self.logic = Logic(self)
         self.reset()
 
@@ -39,8 +43,12 @@ class Elevator:
         if event:
             self.history.append(event)
             self.stats.handleEvent(event)
-            for responseEvent in self.logic.handleEvent(event):
-                self.queue.put(responseEvent)
+            try:
+                for responseEvent in self.logic.handleEvent(event):
+                    self.queue.put(responseEvent)
+            except BaseException as e:
+                print(e, file=sys.stderr)
+
             return event
 
 
@@ -50,11 +58,14 @@ def runElevator(
     openDoorDelay=DEFAULT_OPEN_DOOR_DELAY,
     interFloorDelay=DEFAULT_INTER_FLOOR_DELAY,
 ):
-    """Make an elevator and pass it some events."""
+    """Make an elevator and pass it some pre-determined events."""
+
+    # Put all events into a queue.
     queue = DelayPriorityQueue()
     for event in events:
         queue.put(event)
     queue.put(Event(END, None))
+
     elevator = Elevator(
         queue=queue,
         floors=floors,
@@ -82,14 +93,19 @@ def addStandardOptions(parser):
 
     parser.add_argument(
         "--interFloorDelay",
-        type=int,
-        default=2,
+        type=float,
+        default=2.0,
         help="The number of seconds between floors.",
     )
 
     parser.add_argument(
         "--openDoorDelay",
-        type=int,
-        default=5,
+        type=float,
+        default=5.0,
         help="The number of seconds the doors stay open.",
+    )
+
+    parser.add_argument(
+        "--testDir",
+        help="The directory to write automated tests to.",
     )

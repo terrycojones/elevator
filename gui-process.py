@@ -29,6 +29,7 @@ def main(args):
         floors=args.floors,
         openDoorDelay=args.openDoorDelay,
         interFloorDelay=args.interFloorDelay,
+        testDir=args.testDir,
     )
 
     os.set_blocking(sys.stdin.fileno(), False)
@@ -43,7 +44,7 @@ def main(args):
 
         nextEvent = elevator.handleEvent()
         if nextEvent and nextEvent.causedBy is not None:
-            print(f"Sending {nextEvent}", file=sys.stderr)
+            # print(f"Sending {nextEvent}", file=sys.stderr)
             print(nextEvent.toJSON(), flush=True)
 
         sleep(0.1)

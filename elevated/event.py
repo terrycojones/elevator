@@ -28,6 +28,7 @@ class Event:
         delay=0,
         queuedAt=None,
         handledAt=None,
+        serial=None,
         causedBy=None,
     ):
         if what in {CALL, CLEAR_CALL, LIGHT_INDICATOR}:
@@ -41,7 +42,7 @@ class Event:
         self.delay = delay
         self.queuedAt = queuedAt  # Time when the event is enqueued.
         self.handledAt = handledAt  # Time when the event is taken from the queue.
-        self.serial = None  # Event serial number. Added when enqueued.
+        self.serial = serial  # Event serial number. Added when enqueued.
         self.causedBy = causedBy  # The event causing this event.
 
     def __str__(self):
@@ -50,7 +51,7 @@ class Event:
             if self.direction is not None
             else "            "
         )
-        delay = f" delay={self.delay:2d}" if self.delay is not None else "         "
+        delay = f" delay={self.delay:.1f}" if self.delay is not None else "         "
         serial = (
             f" serial={self.serial:2d}" if self.serial is not None else "          "
         )
@@ -88,6 +89,7 @@ class Event:
                 delay=j.get("delay", 0),
                 queuedAt=j.get("queuedAt"),
                 handledAt=j.get("handledAt"),
+                serial=j.get("serial"),
             )
 
     def toJSON(self):
@@ -99,5 +101,6 @@ class Event:
                 "delay": self.delay,
                 "queuedAt": self.queuedAt,
                 "handledAt": self.handledAt,
+                "serial": self.serial,
             }
         )

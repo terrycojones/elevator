@@ -1,4 +1,6 @@
 import sys
+from pathlib import Path
+from datetime import datetime
 
 from elevated.constants import (
     UP,
@@ -14,6 +16,7 @@ from elevated.constants import (
     CLEAR_STOP,
     LIGHT_INDICATOR,
     CLEAR_INDICATOR,
+    WRITE_TEST,
     describe,
 )
 
@@ -96,13 +99,147 @@ class Logic:
         self.elevator.reset()
         return []
 
-    def handle_STOP(self, event):
+    def handle_STOP(self, stopEvent):
         elevator = self.elevator
         state = elevator.state
-        state.pressStop(event.floor, event.handledAt)
-        return []
+        delay = 0
+
+        state.pressStop(stopEvent.floor, stopEvent.handledAt)
+
+        responseEvents = []
+        # We only need to figure out what's next if we were not moving in a
+        # particular direction.
+        if state.lastDirection is None:
+            # We were not in motion. So we can go to the floor of the stop.
+            if stopEvent.floor == state.floor:
+                # We are already where we need to be.
+                if state.closed:
+                    # Someone wants to get off, and we're already sitting
+                    # idle on their floor.  Open the doors to let them out.
+                    responseEvents.append(
+                        Event(OPEN, stopEvent.floor, causedBy=stopEvent)
+                    )
+                    delay += elevator.openDoorDelay
+                    responseEvents.append(
+                        Event(CLOSE, stopEvent.floor, delay=delay, causedBy=stopEvent)
+                    )
+                else:
+                    # Someone re-pressed the stop button even though
+                    # the doors are open.  We could make sure the next
+                    # scheduled event is a CLOSE and adjust the close time
+                    # (but then we would have to also see if there was an
+                    # ARRIVE also scheduled and adjust that). Then we'd
+                    # want to limit how many times we do that because
+                    # otherwise someone could hold the doors open
+                    # indefinitely. So for now just ignore it.
+                    pass
+            else:
+                # The stop is for another floor.
+                direction = UP if stopEvent.floor > state.floor else DOWN
+                state.lastDirection = direction
+                # Schedule the arrival at our next floor.
+                nextFloor = state.floor + (1 if direction == UP else -1)
+                assert 0 <= nextFloor < elevator.floors
+                delay += elevator.interFloorDelay
+                responseEvents.append(
+                    Event(ARRIVE, nextFloor, delay=delay, causedBy=stopEvent)
+                )
+
+        return responseEvents
 
     def handle_END(self, event):
+        return []
+
+    def handle_WRITE_TEST(self, event):
+        elevator = self.elevator
+        if elevator.testDir is None:
+            print(
+                "Received WRITE_TEST event but the elevator testDir is None",
+                file=sys.stderr,
+            )
+            return []
+
+        testDir = Path(elevator.testDir)
+        if not testDir.exists():
+            testDir.mkdir()
+
+        date = datetime.now().strftime("%Y%m%d")
+        count = len(tuple(testDir.glob(f"test_{date}-*.py")))
+
+        while True:
+            count += 1
+            testFile = testDir / f"test_{date}-{count:03d}.py"
+            if not testFile.exists():
+                break
+
+        with open(testFile, "w") as fp:
+            sys.stdout = fp
+            print(
+                """\
+from elevated.constants import UP, DOWN, CALL, OFF, STOP
+from elevated.event import Event
+from elevated.elevator import runElevator
+
+def testElevator():
+    events = ["""
+            )
+
+            wantedEvents = {UP, DOWN, CALL, STOP}
+            lastHandledAt = None
+            for event in elevator.history:
+                if event.what in wantedEvents:
+                    assert event.delay == 0
+                    if lastHandledAt is None:
+                        lastHandledAt = event.handledAt
+                    event.delay = event.handledAt - lastHandledAt
+                    lastHandledAt = event.handledAt
+                    direction = (
+                        ""
+                        if event.direction is None
+                        else f", {describe(event.direction).upper()}"
+                    )
+                    delay = (
+                        ""
+                        if event.delay == 0
+                        else f", delay={event.delay}"
+                    )
+                    print(
+                        f"        Event({describe(event.what).upper()}, "
+                        f"{event.floor}{direction}{delay}),"
+                        # f"queuedAt={event.queuedAt}),"
+                    )
+
+            print(f"    ]\n    e = runElevator(events, floors={elevator.floors})")
+            print("    state = e.state\n")
+
+            print(f"    assert state.floor == {elevator.state.floor}")
+            print(f"    assert state.closed == {elevator.state.closed}")
+            print("\n    # Test stop buttons.")
+            print("    stopButtons = state.stopButtons")
+
+            for floor in range(elevator.floors):
+                print(f"    assert stopButtons[{floor}].state is "
+                      f"{elevator.state.stopButtons[floor].state}")
+
+            print("\n    # Test call buttons.")
+            print("    callButtons = state.callButtons")
+
+            for floor in range(elevator.floors):
+                for direction in UP, DOWN:
+                    print(f"    assert callButtons[{floor}]["
+                          f"{describe(direction).upper()}].state is "
+                          f"{elevator.state.callButtons[floor][direction].state}")
+
+            print("\n    # Test direction indicator lights.")
+            print("    indicatorLights = state.indicatorLights")
+
+            for floor in range(elevator.floors):
+                print(f"    assert indicatorLights[{floor}] == "
+                      f"{describe(elevator.state.indicatorLights[floor]).upper()}")
+
+        sys.stdout = sys.__stdout__
+
+        print(f"Wrote test to {str(testFile)!r}.", file=sys.stderr)
         return []
 
     def handle_LIGHT_INDICATOR(self, event):
@@ -165,7 +302,7 @@ class Logic:
                     # is not in the direction they indicated they wanted to
                     # go in.
                 else:
-                    # Someone is re-pressed the call button even though
+                    # Someone re-pressed the call button even though
                     # the doors are open.  We could make sure the next
                     # scheduled event is a CLOSE and adjust the close time
                     # (but then we would have to also see if there was an
@@ -286,9 +423,11 @@ class Logic:
         state.closed = False
         responseEvents = []
         delay = 0
+
+        assert state.floor == openEvent.floor
+
         # Clear the call button (if it has been pressed) for this direction
         # on this floor.
-        assert state.floor == openEvent.floor
         if state.lastDirection is not None:
             if state.callButtons[openEvent.floor][state.lastDirection]:
                 responseEvents.append(
@@ -300,6 +439,18 @@ class Logic:
                         causedBy=openEvent,
                     )
                 )
+
+        # Clear the stop button (if it has been pressed) for this floor.
+        if state.stopButtons[openEvent.floor]:
+            responseEvents.append(
+                Event(
+                    CLEAR_STOP,
+                    openEvent.floor,
+                    delay=delay,
+                    causedBy=openEvent,
+                )
+            )
+
         return responseEvents
 
     def handle_ARRIVE(self, arrivalEvent):
@@ -314,6 +465,8 @@ class Logic:
         #    There must be a current direction.
         assert state.closed
         assert state.floor == arrivalEvent.floor or state.lastDirection is not None
+
+        # print(state, file=sys.stderr)
 
         if state.stopButtons[state.floor]:
             # The stop button for this floor was pressed. Clear the button,

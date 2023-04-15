@@ -1,7 +1,15 @@
 XARGS := xargs $(shell test $$(uname) = Linux && echo -r)
 
+test: pytest
+
 pytest:
+	env PYTHONPATH=. pytest
+
+pytest-verbose:
 	env PYTHONPATH=. pytest --capture=no
+
+flake8:
+	flake8 *.py */*.py test/*.py test/automated/*.py
 
 wc:
 	wc -l test/*.py elevated/*.py *.py

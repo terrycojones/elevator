@@ -32,8 +32,13 @@ class DelayPriorityQueue:
         return self.queue[0].event if self.queue else None
 
     def put(self, event):
-        now = time()
-        event.enqueued(now, self.inc)
+        # The event may already have an queue entry time as a result of
+        # being created by a GUI.
+        if event.queuedAt is None:
+            now = time()
+            event.enqueued(now, self.inc)
+        else:
+            now = event.queuedAt
         heapq.heappush(self.queue, Element(now + event.delay, self.inc, event))
         # print("QUEUE PUT", event, file=sys.stderr)
         self.inc += 1

@@ -1,15 +1,23 @@
 import sys
 
-from elevated.constants import END, DEFAULT_FLOORS, describe
+from elevated.constants import (
+    END,
+    CLEAR_STOP,
+    WRITE_TEST,
+    RESET,
+    DEFAULT_FLOORS,
+    describe,
+)
 
 
 class Stats:
-    IGNORED = {END}
+    IGNORED = {END, CLEAR_STOP, WRITE_TEST, RESET}
 
     def __init__(self, floors=DEFAULT_FLOORS):
         assert floors > 0
         self.floors = floors
         self.stopButtonCounts = [0] * floors
+        self.stopButtonClearCounts = [0] * floors
         self.callButtonCounts = [[0, 0] for _ in range(floors)]
         self.callButtonClearCounts = [[0, 0] for _ in range(floors)]
         self.indicatorLightCounts = [[0, 0] for _ in range(floors)]
@@ -24,7 +32,7 @@ class Stats:
         except AttributeError:
             if event.what not in self.IGNORED:
                 print(
-                    f"No handler found for {describe(event.what)} event {event}. "
+                    f"No stats handler found for {describe(event.what)} event {event}. "
                     f"Ignoring.",
                     file=sys.stderr,
                 )
@@ -33,6 +41,9 @@ class Stats:
 
     def handle_STOP(self, event):
         self.stopButtonCounts[event.floor] += 1
+
+    def handle_CLEAR_STOP(self, event):
+        self.stopButtonClearCounts[event.floor] += 1
 
     def handle_CALL(self, event):
         self.callButtonCounts[event.floor][event.direction] += 1
@@ -47,7 +58,6 @@ class Stats:
         self.closeCounts[event.floor] += 1
 
     def handle_OPEN(self, event):
-        print("STAT OPEN", event, file=sys.stderr)
         self.openCounts[event.floor] += 1
 
     def handle_LIGHT_INDICATOR(self, event):

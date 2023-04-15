@@ -17,14 +17,15 @@ DEFAULT_INTER_FLOOR_DELAY = 2
     LIGHT_INDICATOR,
     CLEAR_INDICATOR,
     RESET,
-) = range(14)
+    WRITE_TEST,
+) = range(15)
 
 # UP and DOWN need to be 0 and 1
 assert UP == 0 and DOWN == 1
 
 _names = {
-    UP: "⇧",
-    DOWN: "⇩",
+    UP: "up",
+    DOWN: "down",
     CALL: "call",
     STOP: "stop",
     ARRIVE: "arrive",
@@ -37,6 +38,7 @@ _names = {
     LIGHT_INDICATOR: "light_indicator",
     CLEAR_INDICATOR: "clear_indicator",
     RESET: "reset",
+    WRITE_TEST: "write_test",
 }
 
 
