@@ -261,7 +261,7 @@ class ElevatorGUI(QWidget):
         self.directionLabel.setText("Direction: None")
 
     def handleSetDirection(self, event):
-        self.directionLabel.setText(f"Direction: {describe(event.direction).upper()}")
+        self.directionLabel.setText(f"Direction: {describe(event.direction)}")
 
     def handleOpen(self, event):
         self.updateFloor(event.floor)

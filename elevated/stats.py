@@ -28,7 +28,7 @@ class Stats:
 
     def handleEvent(self, event):
         try:
-            handler = getattr(self, f"handle_{describe(event.what).upper()}")
+            handler = getattr(self, f"handle_{describe(event.what)}")
         except AttributeError:
             if event.what not in self.IGNORED:
                 print(

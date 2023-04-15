@@ -56,7 +56,7 @@ class Event:
         floor = f"{self.floor:4d}" if self.floor is not None else "None"
         handled = f" handled={self.handledAt:.2f}" if self.handledAt is not None else ""
         return (
-            f"<Event {describe(self.what).upper():15} floor={floor}"
+            f"<Event {describe(self.what):15} floor={floor}"
             f"{direction}{delay}{serial}{cause}{queued}{handled}>"
         )
 

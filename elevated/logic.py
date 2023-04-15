@@ -82,7 +82,7 @@ class Logic:
         self.elevator = elevator
 
     def handleEvent(self, event):
-        handler = getattr(self, f"handle_{describe(event.what).upper()}")
+        handler = getattr(self, f"handle_{describe(event.what)}")
         if handler:
             return handler(event)
         else:
@@ -208,11 +208,11 @@ def testElevator():
                     direction = (
                         ""
                         if event.direction is None
-                        else f", direction={describe(event.direction).upper()}"
+                        else f", direction={describe(event.direction)}"
                     )
                     delay = "" if event.delay == 0 else f", delay={event.delay}"
                     print(
-                        f"        Event({describe(event.what).upper()}, "
+                        f"        Event({describe(event.what)}, "
                         f"{event.floor}{direction}{delay}, "
                         f"queuedAt={event.queuedAt}, "
                         f"serial={event.serial}),"
@@ -246,7 +246,7 @@ def testElevator():
                 for direction in UP, DOWN:
                     print(
                         f"    assert callButtons[{floor}]["
-                        f"{describe(direction).upper()}].state is "
+                        f"{describe(direction)}].state is "
                         f"{elevator.state.callButtons[floor][direction].state}"
                     )
 
@@ -296,7 +296,7 @@ def testElevator():
                 for direction in UP, DOWN:
                     print(
                         f"    assert callButtonCounts[{floor}]["
-                        f"{describe(direction).upper()}] == "
+                        f"{describe(direction)}] == "
                         f"{elevator.stats.callButtonCounts[floor][direction]}"
                     )
 
@@ -306,7 +306,7 @@ def testElevator():
                 for direction in UP, DOWN:
                     print(
                         f"    assert callButtonClearCounts[{floor}]["
-                        f"{describe(direction).upper()}] == "
+                        f"{describe(direction)}] == "
                         f"{elevator.stats.callButtonClearCounts[floor][direction]}"
                     )
 
