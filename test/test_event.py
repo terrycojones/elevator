@@ -1,12 +1,11 @@
-import pytest
-
-
-from elevated.constants import CALL, UP
+from elevated.constants import CALL_PRESSED, UP
 from elevated.event import Event
 
 
 def testFromJSONString():
-    event = Event.fromJSONString(f'{{"what": {CALL}, "floor": 0, "direction": {UP}}}')
-    assert event.what == CALL
+    event = Event.fromJSONString(
+        f'{{"what": {CALL_PRESSED}, "floor": 0, "direction": {UP}}}'
+    )
+    assert event.what == CALL_PRESSED
     assert event.floor == 0
     assert event.direction == UP

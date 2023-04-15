@@ -6,12 +6,14 @@ from elevated.constants import (
     WRITE_TEST,
     RESET,
     DEFAULT_FLOORS,
+    CLEAR_DIRECTION,
+    SET_DIRECTION,
     describe,
 )
 
 
 class Stats:
-    IGNORED = {END, CLEAR_STOP, WRITE_TEST, RESET}
+    IGNORED = {END, CLEAR_STOP, WRITE_TEST, RESET, CLEAR_DIRECTION, SET_DIRECTION}
 
     def __init__(self, floors=DEFAULT_FLOORS):
         assert floors > 0
@@ -20,8 +22,6 @@ class Stats:
         self.stopButtonClearCounts = [0] * floors
         self.callButtonCounts = [[0, 0] for _ in range(floors)]
         self.callButtonClearCounts = [[0, 0] for _ in range(floors)]
-        self.indicatorLightCounts = [[0, 0] for _ in range(floors)]
-        self.indicatorLightClearCounts = [0] * floors
         self.arriveCounts = [0] * floors
         self.openCounts = [0] * floors
         self.closeCounts = [0] * floors
@@ -39,13 +39,13 @@ class Stats:
         else:
             return handler(event)
 
-    def handle_STOP(self, event):
+    def handle_STOP_PRESSED(self, event):
         self.stopButtonCounts[event.floor] += 1
 
     def handle_CLEAR_STOP(self, event):
         self.stopButtonClearCounts[event.floor] += 1
 
-    def handle_CALL(self, event):
+    def handle_CALL_PRESSED(self, event):
         self.callButtonCounts[event.floor][event.direction] += 1
 
     def handle_CLEAR_CALL(self, event):
@@ -59,9 +59,3 @@ class Stats:
 
     def handle_OPEN(self, event):
         self.openCounts[event.floor] += 1
-
-    def handle_LIGHT_INDICATOR(self, event):
-        self.indicatorLightCounts[event.floor][event.direction] += 1
-
-    def handle_CLEAR_INDICATOR(self, event):
-        self.indicatorLightClearCounts[event.floor] += 1

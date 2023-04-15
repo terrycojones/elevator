@@ -4,17 +4,9 @@ import json
 from elevated.constants import (
     UP,
     DOWN,
-    ARRIVE,
-    OPEN,
-    CLOSE,
-    CALL,
-    OFF,
-    END,
-    STOP,
+    CALL_PRESSED,
     CLEAR_CALL,
-    CLEAR_STOP,
-    LIGHT_INDICATOR,
-    CLEAR_INDICATOR,
+    SET_DIRECTION,
     describe,
 )
 
@@ -31,7 +23,7 @@ class Event:
         serial=None,
         causedBy=None,
     ):
-        if what in {CALL, CLEAR_CALL, LIGHT_INDICATOR}:
+        if what in {CALL_PRESSED, CLEAR_CALL, SET_DIRECTION}:
             assert direction is not None, f"None direction in {describe(what)} event."
             assert direction in {UP, DOWN}
         else:
@@ -47,11 +39,11 @@ class Event:
 
     def __str__(self):
         direction = (
-            f" direction={describe(self.direction)}"
+            f" direction={describe(self.direction):4s}"
             if self.direction is not None
-            else "            "
+            else "               "
         )
-        delay = f" delay={self.delay:.1f}" if self.delay is not None else "         "
+        delay = f" delay={self.delay:4.1f}" if self.delay is not None else "         "
         serial = (
             f" serial={self.serial:2d}" if self.serial is not None else "          "
         )
@@ -61,9 +53,10 @@ class Event:
             else "         "
         )
         queued = f" queued={self.queuedAt:.2f}" if self.queuedAt is not None else ""
+        floor = f"{self.floor:4d}" if self.floor is not None else "None"
         handled = f" handled={self.handledAt:.2f}" if self.handledAt is not None else ""
         return (
-            f"<Event {describe(self.what).upper()} floor={self.floor}"
+            f"<Event {describe(self.what).upper():15} floor={floor}"
             f"{direction}{delay}{serial}{cause}{queued}{handled}>"
         )
 

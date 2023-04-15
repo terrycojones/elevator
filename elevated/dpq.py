@@ -40,7 +40,7 @@ class DelayPriorityQueue:
         else:
             now = event.queuedAt
         heapq.heappush(self.queue, Element(now + event.delay, self.inc, event))
-        # print("QUEUE PUT", event, file=sys.stderr)
+        # print("---> QUEUE", event, file=sys.stderr)
         self.inc += 1
 
     def get(self, respectTime=True):
@@ -54,7 +54,7 @@ class DelayPriorityQueue:
             element = heapq.heappop(self.queue)
             event = element.event
             event.handled(now)
-            print("QUEUE GOT", event, file=sys.stderr)
+            print("QUEUE --->", event, file=sys.stderr)
             return event
 
     def hasArriveEvent(self):

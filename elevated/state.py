@@ -4,7 +4,6 @@ from elevated.button import Button
 from elevated.constants import (
     DEFAULT_FLOORS,
     DOWN,
-    OFF,
     UP,
     describe,
 )
@@ -16,9 +15,9 @@ class State:
         self.floors = floors
         self.stopButtons = [Button() for _ in range(floors)]
         self.callButtons = list((Button(), Button()) for _ in range(floors))
-        self.indicatorLights = [OFF] * floors
         self.floor = 0
-        self.lastDirection = None
+        self.direction = None
+        self.destination = None
         self.closed = True
 
     def __str__(self):
@@ -29,14 +28,11 @@ class State:
             f"{floor}:UP:{up},DOWN:{down}"
             for floor, (up, down) in enumerate(self.callButtons)
         )
-        indicators = " ".join(
-            f"{floor}:{describe(indicator)}"
-            for floor, indicator in enumerate(self.indicatorLights)
-        )
         return (
             f"<State floor={self.floor} closed={self.closed} "
-            f"direction={describe(self.lastDirection)}, "
-            f"stops=[{stops}] calls=[{calls}] indicators=[{indicators}]"
+            f"direction={describe(self.direction)}, "
+            f"destination={self.destination}, "
+            f"stops=[{stops}] calls=[{calls}] "
         )
 
     @classmethod
@@ -44,9 +40,9 @@ class State:
         state = klass(j["floors"])
         state.stopButtons = j["stopButtons"]
         state.callButtons = j["callButtons"]
-        state.indicatorLights = j["indicatorLights"]
         state.floor = j["floor"]
-        state.lastDirection = j["lastDirection"]
+        state.direction = j["direction"]
+        state.destination = j["destination"]
         state.closed = j["closed"]
         return state
 
@@ -56,9 +52,9 @@ class State:
                 "floors": self.floors,
                 "stopButtons": self.stopButtons,
                 "callButtons": self.callButtons,
-                "indicatorLights": self.indicatorLights,
                 "floor": self.floor,
-                "lastDirection": self.lastDirection,
+                "direction": self.direction,
+                "destination": self.destination,
                 "closed": self.closed,
             }
         )
@@ -90,15 +86,19 @@ class State:
 
         self.callButtons[floor][direction].press(when)
 
-    def clearCall(self, floor, direction):
+    def clearCall(self, floor, direction, event):
         """
         Clear the call button for a given direction on a floor.
         """
         if floor == self.floors - 1 and direction == UP:
-            raise ValueError("Cannot clear UP call button on top floor!")
+            raise ValueError(
+                f"Cannot clear UP call button on top floor! Event: {event}"
+            )
 
         if floor == 0 and direction == DOWN:
-            raise ValueError("Cannot clear DOWN call button on bottom floor!")
+            raise ValueError(
+                f"Cannot clear DOWN call button on bottom floor! Event: {event}"
+            )
 
         self.callButtons[floor][direction].clear()
 
@@ -113,12 +113,6 @@ class State:
         Clear the stop button for a floor.
         """
         self.stopButtons[floor].clear()
-
-    def indicate(self, floor, direction):
-        """
-        Set the direction indicator for a floor.
-        """
-        self.indicatorLights[floor] = direction
 
     def getRemainingFloors(self, direction):
         """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+from time import time
 
 from elevated.constants import (
     DEFAULT_FLOORS,
@@ -43,11 +43,8 @@ class Elevator:
         if event:
             self.history.append(event)
             self.stats.handleEvent(event)
-            try:
-                for responseEvent in self.logic.handleEvent(event):
-                    self.queue.put(responseEvent)
-            except BaseException as e:
-                print(e, file=sys.stderr)
+            for responseEvent in self.logic.handleEvent(event):
+                self.queue.put(responseEvent)
 
             return event
 
@@ -61,9 +58,24 @@ def runElevator(
     """Make an elevator and pass it some pre-determined events."""
 
     # Put all events into a queue.
+
+    firstEventQueuedAt = None
+    now = time()
+
     queue = DelayPriorityQueue()
     for event in events:
+        if firstEventQueuedAt is None:
+            firstEventQueuedAt = event.queuedAt
+
+        # If the event has a queued at time, we are replaying events from
+        # some earlier source (likely the GUI). Adjust the old times to be
+        # relative to the current time to make sure they come out of the
+        # queue exactly as they should.
+        if event.queuedAt is not None:
+            event.queuedAt = now + event.queuedAt - firstEventQueuedAt
+
         queue.put(event)
+
     queue.put(Event(END, None))
 
     elevator = Elevator(

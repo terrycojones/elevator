@@ -20,16 +20,17 @@ from PySide6.QtWidgets import (
 
 from elevated.constants import (
     ARRIVE,
-    CALL,
+    CALL_PRESSED,
     CLEAR_CALL,
-    CLEAR_INDICATOR,
+    CLEAR_DIRECTION,
     CLEAR_STOP,
     CLOSE,
     DOWN,
     END,
+    SET_DIRECTION,
     OPEN,
     RESET,
-    STOP,
+    STOP_PRESSED,
     UP,
     WRITE_TEST,
     describe,
@@ -138,19 +139,6 @@ class ElevatorGUI(QWidget):
         callPanel.setLayout(callLayout)
         mainLayout.addWidget(callPanel)
 
-        # Create panel for floor direction indicators
-        indicatorPanel = QGroupBox("Direction indicators")
-        indicatorLayout = QVBoxLayout()
-
-        self.indicators = []
-        for floor in reversed(range(self.floors)):
-            indicator = QLabel("OFF")
-            self.indicators.append(indicator)
-            indicatorLayout.addWidget(indicator)
-
-        indicatorPanel.setLayout(indicatorLayout)
-        mainLayout.addWidget(indicatorPanel)
-
         # Create panel for controls, status, etc.
         controlPanel = QGroupBox("Status / control")
         controlLayout = QVBoxLayout()
@@ -159,6 +147,11 @@ class ElevatorGUI(QWidget):
         self.floor_indicator_label = QLabel("Current Floor: 1")
         self.floor_indicator_label.setAlignment(Qt.AlignCenter)
         controlLayout.addWidget(self.floor_indicator_label)
+
+        # Direction indicator label
+        self.directionLabel = QLabel("Direction: None")
+        self.directionLabel.setAlignment(Qt.AlignCenter)
+        controlLayout.addWidget(self.directionLabel)
 
         # Doors label
         self.doorsLabel = QLabel("Doors: CLOSED")
@@ -189,22 +182,22 @@ class ElevatorGUI(QWidget):
 
     @Slot()
     def callPressed(self, floor, direction):
-        self.send(Event(CALL, floor, direction=direction))
+        self.send(Event(CALL_PRESSED, floor, direction=direction))
 
     @Slot()
     def stopPressed(self, floor):
-        self.send(Event(STOP, floor))
+        self.send(Event(STOP_PRESSED, floor))
 
     @Slot()
     def reset(self):
         self.send(Event(RESET, None))
         self.updateFloor(0)
         self.doorsLabel.setText("Doors: CLOSED")
+        self.setDirection("OFF")
         for floor in range(self.floors):
             self.stopButtons[floor].setChecked(False)
             self.callButtons[floor][UP].setChecked(False)
             self.callButtons[floor][DOWN].setChecked(False)
-            self.indicators[floor].setText(f"{floor} OFF")
 
     @Slot()
     def quit(self):
@@ -230,16 +223,16 @@ class ElevatorGUI(QWidget):
             self.handleOpen(event)
         elif event.what == CLOSE:
             self.handleClose(event)
-        elif event.what == STOP:
-            self.handleStop(event)
         elif event.what == CLEAR_STOP:
             self.handleClearStop(event)
         elif event.what == ARRIVE:
             self.handleArrive(event)
         elif event.what == CLEAR_CALL:
             self.handleClearCall(event)
-        elif event.what == CLEAR_INDICATOR:
-            self.handleClearIndicator(event)
+        elif event.what == CLEAR_DIRECTION:
+            self.handleClearDirection(event)
+        elif event.what == SET_DIRECTION:
+            self.handleSetDirection(event)
         else:
             print(f"Don't know how to handle {event}.", file=sys.stderr)
 
@@ -262,14 +255,13 @@ class ElevatorGUI(QWidget):
         # print("---> GUI: end of process stderr", file=sys.stderr)
 
     def handleClearCall(self, event):
-        print(
-            f"Clear call for floor {event.floor} direction {describe(event.direction)}"
-        )
         self.callButtons[event.floor][event.direction].setChecked(False)
 
-    def handleClearIndicator(self, event):
-        print(f"Clear indicator for floor {event.floor}.")
-        self.indicators[event.floor].setChecked(False)
+    def handleClearDirection(self, event):
+        self.directionLabel.setText("Direction: None")
+
+    def handleSetDirection(self, event):
+        self.directionLabel.setText(f"Direction: {describe(event.direction).upper()}")
 
     def handleOpen(self, event):
         self.updateFloor(event.floor)
@@ -280,11 +272,10 @@ class ElevatorGUI(QWidget):
         self.doorsLabel.setText("Doors: CLOSED")
 
     def handleStop(self, event):
-        print(f"Stop button for floor: {event.floor}")
+        self.updateFloor(event.floor)
         self.stopButtons[event.floor].setChecked(True)
 
     def handleClearStop(self, event):
-        print(f"Clear stop button for floor: {event.floor}")
         self.stopButtons[event.floor].setChecked(False)
 
     def handleArrive(self, event):

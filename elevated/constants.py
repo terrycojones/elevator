@@ -5,18 +5,18 @@ DEFAULT_INTER_FLOOR_DELAY = 2
 (
     UP,
     DOWN,
-    CALL,
-    STOP,
     ARRIVE,
-    OPEN,
+    CALL_PRESSED,
+    CLEAR_CALL,
+    CLEAR_DIRECTION,
+    CLEAR_STOP,
     CLOSE,
     END,
     OFF,
-    CLEAR_STOP,
-    CLEAR_CALL,
-    LIGHT_INDICATOR,
-    CLEAR_INDICATOR,
+    OPEN,
     RESET,
+    SET_DIRECTION,
+    STOP_PRESSED,
     WRITE_TEST,
 ) = range(15)
 
@@ -26,21 +26,22 @@ assert UP == 0 and DOWN == 1
 _names = {
     UP: "up",
     DOWN: "down",
-    CALL: "call",
-    STOP: "stop",
     ARRIVE: "arrive",
-    OPEN: "open",
+    CALL_PRESSED: "call_pressed",
+    CLEAR_CALL: "clear_call",
+    CLEAR_DIRECTION: "clear_direction",
+    CLEAR_STOP: "clear_stop",
     CLOSE: "close",
     END: "end",
     OFF: "off",
-    CLEAR_STOP: "clear_stop",
-    CLEAR_CALL: "clear_call",
-    LIGHT_INDICATOR: "light_indicator",
-    CLEAR_INDICATOR: "clear_indicator",
+    OPEN: "open",
     RESET: "reset",
+    SET_DIRECTION: "set_direction",
+    STOP_PRESSED: "stop_pressed",
     WRITE_TEST: "write_test",
+    None: "None",
 }
 
 
 def describe(what):
-    return _names.get(what, f"<<<UNKNOWN {what=}>>>")
+    return _names[what]
