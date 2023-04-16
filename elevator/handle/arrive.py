@@ -30,9 +30,7 @@ def handle_ARRIVE(arrivalEvent, elevator):
         # The stop button for this floor was pressed. Clear the button,
         # open the doors, and schedule a door close.
         responseEvents.append(
-            Event(
-                CLEAR_STOP, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent
-            )
+            Event(CLEAR_STOP, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
         )
         responseEvents.append(
             Event(OPEN, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
@@ -63,9 +61,7 @@ def handle_ARRIVE(arrivalEvent, elevator):
                 )
 
             # Schedule the arrival at our next floor.
-            nextFloor = state.floor + (
-                1 if nextStopFloor > arrivalEvent.floor else -1
-            )
+            nextFloor = state.floor + (1 if nextStopFloor > arrivalEvent.floor else -1)
             assert 0 <= nextFloor < elevator.floors
             if state.destination is None:
                 state.destination = nextFloor
@@ -173,9 +169,7 @@ def handle_ARRIVE(arrivalEvent, elevator):
                 # on. They may still be there, may get on, and may press a
                 # button, etc).
                 responseEvents.append(
-                    Event(
-                        OPEN, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent
-                    )
+                    Event(OPEN, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
                 )
                 delay += elevator.openDoorDelay
                 responseEvents.append(

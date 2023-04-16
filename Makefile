@@ -9,10 +9,10 @@ pytest-verbose:
 	env PYTHONPATH=. pytest --capture=no
 
 flake8:
-	flake8 *.py */*.py test/*.py test/automated/*.py
+	find . -name '*.py' | $(XARGS) flake8
 
 wc:
-	wc -l test/*.py elevator/*.py *.py
+	find . -name '*.py' | $(XARGS) wc -l
 
 clean:
 	find . -type d -name __pycache__ | $(XARGS) rm -r

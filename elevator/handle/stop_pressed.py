@@ -26,9 +26,7 @@ def handle_STOP_PRESSED(stopEvent, elevator):
             if state.closed:
                 # Someone wants to get off, and we're already sitting
                 # idle on their floor.  Open the doors to let them out.
-                responseEvents.append(
-                    Event(OPEN, stopEvent.floor, causedBy=stopEvent)
-                )
+                responseEvents.append(Event(OPEN, stopEvent.floor, causedBy=stopEvent))
                 delay += elevator.openDoorDelay
                 responseEvents.append(
                     Event(CLOSE, stopEvent.floor, delay=delay, causedBy=stopEvent)

@@ -31,9 +31,7 @@ def handle_CALL_PRESSED(callEvent, elevator):
             if state.closed:
                 # Someone wants to get on, and we're already sitting
                 # idle on their floor.  Open the doors to let them on.
-                responseEvents.append(
-                    Event(OPEN, callEvent.floor, causedBy=callEvent)
-                )
+                responseEvents.append(Event(OPEN, callEvent.floor, causedBy=callEvent))
                 delay += elevator.openDoorDelay
                 responseEvents.append(
                     Event(CLOSE, callEvent.floor, delay=delay, causedBy=callEvent)

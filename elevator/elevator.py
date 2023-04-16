@@ -8,7 +8,6 @@ from elevator.constants import (
     DEFAULT_OPEN_DOOR_DELAY,
     DEFAULT_INTER_FLOOR_DELAY,
 )
-
 from elevator.dpq import DelayPriorityQueue
 from elevator.event import Event
 from elevator.logic import Logic

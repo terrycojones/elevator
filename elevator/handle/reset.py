@@ -1,3 +1,3 @@
-def handle_RESET(self, event, elevator):
+def handle_RESET(event, elevator):
     elevator.reset()
     return []

@@ -1,8 +1,18 @@
+import sys
 from pathlib import Path
 from datetime import datetime
 
+from elevator.constants import (
+    UP,
+    DOWN,
+    CALL_PRESSED,
+    STOP_PRESSED,
+    describe,
+)
+from elevator.event import Event
 
-def handle_WRITE_TEST(self, event, elevator):
+
+def handle_WRITE_TEST(event, elevator):
     if elevator.testDir is None:
         print(
             "Received WRITE_TEST event but the elevator testDir is None",
@@ -36,7 +46,7 @@ def handle_WRITE_TEST(self, event, elevator):
     with open(testFile, "w") as fp:
         sys.stdout = fp
         print(
-                """\
+            """\
 # flake8: noqa F401
 from elevator.constants import UP, DOWN, CALL_PRESSED, STOP_PRESSED, OFF
 from elevator.event import Event
@@ -44,7 +54,7 @@ from elevator.elevator import runElevator
 
 def testElevator():
     events = ["""
-            )
+        )
 
         wantedEvents = {UP, DOWN, CALL_PRESSED, STOP_PRESSED}
         for event in elevator.history:

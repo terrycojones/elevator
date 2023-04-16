@@ -3,7 +3,6 @@
 import sys
 from functools import partial
 import argparse
-from time import time
 
 from PySide6.QtCore import Qt, Slot, QProcess
 from PySide6.QtWidgets import (
@@ -191,7 +190,7 @@ class ElevatorGUI(QWidget):
         self.send(Event(RESET, None))
         self.updateFloor(0)
         self.doorsLabel.setText("Doors: CLOSED")
-        self.setDirection("OFF")
+        self.directionLabel.setText("Direction: None")
         for floor in range(self.floors):
             self.stopButtons[floor].setChecked(False)
             self.callButtons[floor][UP].setChecked(False)
