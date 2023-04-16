@@ -14,6 +14,8 @@ def handle_STOP_PRESSED(stopEvent, elevator):
     state = elevator.state
     delay = 0
 
+    # print("Stop pressed:", stopEvent, state, file=sys.stderr)
+
     state.pressStop(stopEvent.floor, stopEvent.handledAt)
 
     responseEvents = []

@@ -41,6 +41,7 @@ def handle_CLOSE(closeEvent, elevator):
 
         if direction is None:
             buttonFloor, direction = pickDirectionBasedOnCallButtons(closeEvent, state)
+
         if direction is None:
             # Nothing pressed. Stay here.
             if state.direction is not None:

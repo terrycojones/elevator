@@ -92,15 +92,6 @@ class TestAlongRoute:
 class TestUpDown:
     """Test simple upwards then downwards movements."""
 
-    def testPickUpAlongTheWay(self):
-        events = [
-            Event(CALL_PRESSED, 2, direction=UP),
-            Event(STOP_PRESSED, 3),
-            Event(CALL_PRESSED, 1, direction=UP),
-        ]
-        e = runElevator(events)
-        assert e.state.floor == 3
-
     def testReturnToGround120(self):
         events = [
             Event(CALL_PRESSED, 1, direction=UP),

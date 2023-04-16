@@ -8,7 +8,7 @@ from elevator.handle.clear_call import handle_CLEAR_CALL  # noqa
 from elevator.handle.clear_direction import handle_CLEAR_DIRECTION  # noqa
 from elevator.handle.clear_stop import handle_CLEAR_STOP  # noqa
 from elevator.handle.end import handle_END  # noqa
-from elevator.handle.handle_close import handle_CLOSE  # noqa
+from elevator.handle.close import handle_CLOSE  # noqa
 from elevator.handle.open import handle_OPEN  # noqa
 from elevator.handle.reset import handle_RESET  # noqa
 from elevator.handle.set_direction import handle_SET_DIRECTION  # noqa

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
+import sys
 from time import time
+from tempfile import mkdtemp
+from pathlib import Path
 
 from elevator.constants import (
     DEFAULT_FLOORS,
@@ -10,6 +13,7 @@ from elevator.constants import (
 )
 from elevator.dpq import DelayPriorityQueue
 from elevator.event import Event
+from elevator.handle.utils import writeTest
 from elevator.logic import Logic
 from elevator.state import State
 from elevator.stats import Stats
@@ -42,8 +46,20 @@ class Elevator:
         if event:
             self.history.append(event)
             self.stats.handleEvent(event)
-            for responseEvent in self.logic.handleEvent(event):
-                self.queue.put(responseEvent)
+            try:
+                responseEvents = self.logic.handleEvent(event)
+            except Exception:
+                # In Python 3.11 we could use add_note to make this message
+                # appear after the traceback.
+                filename = writeTest(self, Path(mkdtemp()))
+                print(
+                    f"Elevator history saved to test file {str(filename)!r}",
+                    file=sys.stderr,
+                )
+                raise
+            else:
+                for responseEvent in responseEvents:
+                    self.queue.put(responseEvent)
 
             return event
 

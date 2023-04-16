@@ -1,6 +1,5 @@
 from elevator.constants import (
     UP,
-    DOWN,
     ARRIVE,
     OPEN,
     CLOSE,
@@ -16,28 +15,30 @@ from elevator.handle.utils import (
 )
 
 
-def handle_ARRIVE(arrivalEvent, elevator):
+def handle_ARRIVE(arriveEvent, elevator):
     state = elevator.state
-    state.floor = arrivalEvent.floor
+    state.floor = arriveEvent.floor
     responseEvents = []
     delay = 0
 
+    # print("ARRIVE:", arriveEvent, state, file=sys.stderr)
+
     assert state.closed
-    assert state.floor == arrivalEvent.floor
+    assert state.floor == arriveEvent.floor
     assert state.direction is not None
 
     if state.stopButtons[state.floor]:
         # The stop button for this floor was pressed. Clear the button,
         # open the doors, and schedule a door close.
         responseEvents.append(
-            Event(CLEAR_STOP, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
+            Event(CLEAR_STOP, arriveEvent.floor, delay=delay, causedBy=arriveEvent)
         )
         responseEvents.append(
-            Event(OPEN, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
+            Event(OPEN, arriveEvent.floor, delay=delay, causedBy=arriveEvent)
         )
         delay += elevator.openDoorDelay
         responseEvents.append(
-            Event(CLOSE, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
+            Event(CLOSE, arriveEvent.floor, delay=delay, causedBy=arriveEvent)
         )
 
         nextStopFloor = state.outstandingStop(state.direction)
@@ -49,26 +50,26 @@ def handle_ARRIVE(arrivalEvent, elevator):
 
             # Clear the call button for this direction on this floor,
             # if pressed.
-            if state.callButtons[arrivalEvent.floor][state.direction]:
+            if state.callButtons[arriveEvent.floor][state.direction]:
                 responseEvents.append(
                     Event(
                         CLEAR_CALL,
-                        arrivalEvent.floor,
+                        arriveEvent.floor,
                         direction=state.direction,
                         delay=0,
-                        causedBy=arrivalEvent,
+                        causedBy=arriveEvent,
                     )
                 )
 
             # Schedule the arrival at our next floor.
-            nextFloor = state.floor + (1 if nextStopFloor > arrivalEvent.floor else -1)
+            nextFloor = state.floor + (1 if nextStopFloor > arriveEvent.floor else -1)
             assert 0 <= nextFloor < elevator.floors
             if state.destination is None:
                 state.destination = nextFloor
             delay += elevator.interFloorDelay
             assert state.destination != state.floor
             responseEvents.append(
-                Event(ARRIVE, nextFloor, delay=delay, causedBy=arrivalEvent)
+                Event(ARRIVE, nextFloor, delay=delay, causedBy=arriveEvent)
             )
         else:
             # We are not obliged to carry on in the current direction.
@@ -83,12 +84,10 @@ def handle_ARRIVE(arrivalEvent, elevator):
             #     call buttons (their floors and directions). We need a function
             #     that can pick a next direction based on our current floor and
             #     the call button state.
-            buttonFloor, direction = pickDirectionBasedOnCallButtons(
-                arrivalEvent, state
-            )
+            buttonFloor, direction = pickDirectionBasedOnCallButtons(arriveEvent, state)
             if direction is None:
                 buttonFloor, direction = pickDirectionBasedOnStopButtons(
-                    arrivalEvent, state
+                    arriveEvent, state
                 )
             if direction is None:
                 # Nothing pressed. Stay here.
@@ -99,21 +98,21 @@ def handle_ARRIVE(arrivalEvent, elevator):
                             CLEAR_DIRECTION,
                             None,
                             delay=0,
-                            causedBy=arrivalEvent,
+                            causedBy=arriveEvent,
                         )
                     )
                 state.direction = None
             else:
                 # Clear the call button (if it has been pressed) for
                 # this direction on this floor.
-                if state.callButtons[arrivalEvent.floor][direction]:
+                if state.callButtons[arriveEvent.floor][direction]:
                     responseEvents.append(
                         Event(
                             CLEAR_CALL,
-                            arrivalEvent.floor,
+                            arriveEvent.floor,
                             direction=direction,
                             delay=delay,
-                            causedBy=arrivalEvent,
+                            causedBy=arriveEvent,
                         )
                     )
 
@@ -126,7 +125,7 @@ def handle_ARRIVE(arrivalEvent, elevator):
                                 None,
                                 direction=direction,
                                 delay=0,
-                                causedBy=arrivalEvent,
+                                causedBy=arriveEvent,
                             )
                         )
                     state.direction = direction
@@ -137,7 +136,7 @@ def handle_ARRIVE(arrivalEvent, elevator):
                     delay += elevator.interFloorDelay
                     assert state.destination != state.floor
                     responseEvents.append(
-                        Event(ARRIVE, nextFloor, delay=delay, causedBy=arrivalEvent)
+                        Event(ARRIVE, nextFloor, delay=delay, causedBy=arriveEvent)
                     )
     else:
         # No one wanted to stop at this floor.  We can pick people up
@@ -149,45 +148,68 @@ def handle_ARRIVE(arrivalEvent, elevator):
 
         # If we have arrived at the bottom or top of the building we
         # have to change direction.
-        if state.floor == 0:
-            assert state.direction == DOWN
-            state.direction = None
-            assert state.destination == 0
-            # state.destination = None
-        elif state.floor == elevator.floors - 1:
-            assert state.direction == UP
-            state.direction = None
-            assert state.destination == elevator.floors - 1
-            # state.destination = None
+        #
+        # if state.floor == 0:
+        #     assert state.direction == DOWN
+        #     state.direction = None
+        #     assert state.destination == 0
+        # elif state.floor == elevator.floors - 1:
+        #     assert state.direction == UP
+        #     state.direction = None
+        #     assert state.destination == elevator.floors - 1
 
-        if state.direction is not None:
-            if state.callButtons[arrivalEvent.floor][state.direction]:
-                # We can't always schedule a next ARRIVE event because no
-                # buttons may have been pressed. Just let the scheduled
-                # CLOSE event happen. Buttons will presumably have been
-                # pressed in the meantime (we just opened to let people
-                # on. They may still be there, may get on, and may press a
-                # button, etc).
+        if state.destination is not None:
+            assert state.direction is not None
+
+            if state.destination == state.floor:
+                # We were heading to this floor. Open the doors.
                 responseEvents.append(
-                    Event(OPEN, arrivalEvent.floor, delay=delay, causedBy=arrivalEvent)
+                    Event(OPEN, arriveEvent.floor, delay=delay, causedBy=arriveEvent)
                 )
                 delay += elevator.openDoorDelay
                 responseEvents.append(
                     Event(
                         CLOSE,
-                        arrivalEvent.floor,
+                        arriveEvent.floor,
                         delay=delay,
-                        causedBy=arrivalEvent,
+                        causedBy=arriveEvent,
                     )
                 )
+            else:
+                # We are heading somewhere else. Open the doors if the call
+                # button has been pressed in the direction we're heading.
 
-            if state.destination is not None and state.destination != state.floor:
-                # Don't stop here. Schedule the arrival at the next floor.
+                if state.callButtons[arriveEvent.floor][state.direction]:
+                    responseEvents.append(
+                        Event(
+                            CLEAR_CALL,
+                            arriveEvent.floor,
+                            direction=state.direction,
+                            delay=0,
+                            causedBy=arriveEvent,
+                        )
+                    )
+                    responseEvents.append(
+                        Event(
+                            OPEN, arriveEvent.floor, delay=delay, causedBy=arriveEvent
+                        )
+                    )
+                    delay += elevator.openDoorDelay
+                    responseEvents.append(
+                        Event(
+                            CLOSE,
+                            arriveEvent.floor,
+                            delay=delay,
+                            causedBy=arriveEvent,
+                        )
+                    )
+
+                # Schedule the arrival at the next floor.
                 nextFloor = state.floor + (1 if state.direction == UP else -1)
                 assert 0 <= nextFloor < elevator.floors
                 delay += elevator.interFloorDelay
                 responseEvents.append(
-                    Event(ARRIVE, nextFloor, delay=delay, causedBy=arrivalEvent)
+                    Event(ARRIVE, nextFloor, delay=delay, causedBy=arriveEvent)
                 )
 
     return responseEvents

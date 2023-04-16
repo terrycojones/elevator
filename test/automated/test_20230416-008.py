@@ -3,6 +3,7 @@ from elevator.constants import UP, DOWN, CALL_PRESSED, STOP_PRESSED, OFF
 from elevator.event import Event
 from elevator.elevator import runElevator
 
+
 def testElevator():
     events = [
         Event(STOP_PRESSED, 1, queuedAt=1681606360.6776419, serial=0),
