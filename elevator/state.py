@@ -1,7 +1,7 @@
 import json
 
-from elevated.button import Button
-from elevated.constants import (
+from elevator.button import Button
+from elevator.constants import (
     DEFAULT_FLOORS,
     DOWN,
     UP,

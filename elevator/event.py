@@ -1,7 +1,7 @@
 import sys
 import json
 
-from elevated.constants import (
+from elevator.constants import (
     UP,
     DOWN,
     CALL_PRESSED,

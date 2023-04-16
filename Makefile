@@ -12,7 +12,7 @@ flake8:
 	flake8 *.py */*.py test/*.py test/automated/*.py
 
 wc:
-	wc -l test/*.py elevated/*.py *.py
+	wc -l test/*.py elevator/*.py *.py
 
 clean:
 	find . -type d -name __pycache__ | $(XARGS) rm -r

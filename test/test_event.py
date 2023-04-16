@@ -1,5 +1,5 @@
-from elevated.constants import CALL_PRESSED, UP
-from elevated.event import Event
+from elevator.constants import CALL_PRESSED, UP
+from elevator.event import Event
 
 
 def testFromJSONString():

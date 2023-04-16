@@ -2,18 +2,18 @@
 
 from time import time
 
-from elevated.constants import (
+from elevator.constants import (
     DEFAULT_FLOORS,
     END,
     DEFAULT_OPEN_DOOR_DELAY,
     DEFAULT_INTER_FLOOR_DELAY,
 )
 
-from elevated.dpq import DelayPriorityQueue
-from elevated.event import Event
-from elevated.logic import Logic
-from elevated.state import State
-from elevated.stats import Stats
+from elevator.dpq import DelayPriorityQueue
+from elevator.event import Event
+from elevator.logic import Logic
+from elevator.state import State
+from elevator.stats import Stats
 
 
 class Elevator:

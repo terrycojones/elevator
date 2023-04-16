@@ -1,5 +1,5 @@
-from elevated.state import State
-from elevated.constants import UP, DOWN
+from elevator.state import State
+from elevator.constants import UP, DOWN
 
 
 class TestRemainingUpFloors:

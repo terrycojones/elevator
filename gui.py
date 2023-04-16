@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QStyle,
 )
 
-from elevated.constants import (
+from elevator.constants import (
     ARRIVE,
     CALL_PRESSED,
     CLEAR_CALL,
@@ -35,8 +35,8 @@ from elevated.constants import (
     WRITE_TEST,
     describe,
 )
-from elevated.elevator import addStandardOptions
-from elevated.event import Event
+from elevator.elevator import addStandardOptions
+from elevator.event import Event
 
 
 class ElevatorGUI(QWidget):
@@ -47,8 +47,6 @@ class ElevatorGUI(QWidget):
         self.floor = 1
         self.initProcess(args)
         self.initUI(args)
-        self.serial = 0
-        self.lastEventTime = time()
 
     def initProcess(self, args):
         arguments = [
@@ -131,10 +129,10 @@ class ElevatorGUI(QWidget):
             downButton.setIcon(icon)
 
         for floor in reversed(range(self.floors)):
-            floor_layout = QHBoxLayout()
-            floor_layout.addWidget(self.callButtons[floor][UP])
-            floor_layout.addWidget(self.callButtons[floor][DOWN])
-            callLayout.addLayout(floor_layout)
+            floorLayout = QHBoxLayout()
+            floorLayout.addWidget(self.callButtons[floor][UP])
+            floorLayout.addWidget(self.callButtons[floor][DOWN])
+            callLayout.addLayout(floorLayout)
 
         callPanel.setLayout(callLayout)
         mainLayout.addWidget(callPanel)
@@ -144,9 +142,9 @@ class ElevatorGUI(QWidget):
         controlLayout = QVBoxLayout()
 
         # Create floor indicator label
-        self.floor_indicator_label = QLabel("Current Floor: 1")
-        self.floor_indicator_label.setAlignment(Qt.AlignCenter)
-        controlLayout.addWidget(self.floor_indicator_label)
+        self.floorIndicatorLabel = QLabel("Current Floor: 1")
+        self.floorIndicatorLabel.setAlignment(Qt.AlignCenter)
+        controlLayout.addWidget(self.floorIndicatorLabel)
 
         # Direction indicator label
         self.directionLabel = QLabel("Direction: None")
@@ -209,12 +207,6 @@ class ElevatorGUI(QWidget):
         self.send(Event(WRITE_TEST, None))
 
     def send(self, event):
-        # now = time()
-        # delay = now - self.lastEventTime
-        # self.lastEventTime = now
-        # event.enqueued(time(), self.serial)
-        # event.delay = delay
-        # self.serial += 1
         utf8 = event.toJSON().encode("utf-8") + b"\n"
         self.process.write(utf8)
 
@@ -283,7 +275,7 @@ class ElevatorGUI(QWidget):
 
     def updateFloor(self, floor):
         self.floor = floor
-        self.floor_indicator_label.setText(f"Current Floor: {floor}")
+        self.floorIndicatorLabel.setText(f"Current Floor: {floor}")
 
 
 if __name__ == "__main__":

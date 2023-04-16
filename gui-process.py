@@ -5,10 +5,10 @@ import os
 import argparse
 from time import sleep
 
-from elevated.constants import END
-from elevated.elevator import Elevator, addStandardOptions
-from elevated.event import Event
-from elevated.dpq import DelayPriorityQueue
+from elevator.constants import END
+from elevator.elevator import Elevator, addStandardOptions
+from elevator.event import Event
+from elevator.dpq import DelayPriorityQueue
 
 
 def makeEvent(line):

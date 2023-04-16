@@ -2,7 +2,7 @@ import sys
 import heapq
 from time import time
 
-from elevated.constants import ARRIVE, END
+from elevator.constants import ARRIVE, END
 
 
 class Element:

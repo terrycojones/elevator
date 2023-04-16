@@ -1,7 +1,7 @@
 # flake8: noqa F401
-from elevated.constants import UP, DOWN, CALL_PRESSED, STOP_PRESSED, OFF
-from elevated.event import Event
-from elevated.elevator import runElevator
+from elevator.constants import UP, DOWN, CALL_PRESSED, STOP_PRESSED, OFF
+from elevator.event import Event
+from elevator.elevator import runElevator
 
 
 def testElevator():

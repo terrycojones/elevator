@@ -1,4 +1,4 @@
-from elevated.button import Button
+from elevator.button import Button
 
 
 def testDefaultUnpressed():

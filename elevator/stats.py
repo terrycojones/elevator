@@ -1,6 +1,6 @@
 import sys
 
-from elevated.constants import (
+from elevator.constants import (
     END,
     CLEAR_STOP,
     WRITE_TEST,

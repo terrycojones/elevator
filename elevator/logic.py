@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-from elevated.constants import (
+from elevator.constants import (
     UP,
     DOWN,
     ARRIVE,
@@ -17,7 +17,7 @@ from elevated.constants import (
     describe,
 )
 
-from elevated.event import Event
+from elevator.event import Event
 
 
 def pickDirectionBasedOnStopButtons(event, state):
@@ -194,9 +194,9 @@ class Logic:
             print(
                 """\
 # flake8: noqa F401
-from elevated.constants import UP, DOWN, CALL_PRESSED, STOP_PRESSED, OFF
-from elevated.event import Event
-from elevated.elevator import runElevator
+from elevator.constants import UP, DOWN, CALL_PRESSED, STOP_PRESSED, OFF
+from elevator.event import Event
+from elevator.elevator import runElevator
 
 def testElevator():
     events = ["""
@@ -555,9 +555,6 @@ def testElevator():
         responseEvents = []
         delay = 0
 
-        # Invariants:
-        #    The doors are shut.
-        #    There must be a current direction.
         assert state.closed
         assert state.floor == arrivalEvent.floor
         assert state.direction is not None
