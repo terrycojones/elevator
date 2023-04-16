@@ -68,7 +68,7 @@ def testElevator():
     openCounts = stats.openCounts
     assert openCounts[0] == 1
     assert openCounts[1] == 0
-    assert openCounts[2] == 3
+    assert openCounts[2] == 2
     assert openCounts[3] == 0
     assert openCounts[4] == 0
 
@@ -76,7 +76,7 @@ def testElevator():
     closeCounts = stats.closeCounts
     assert closeCounts[0] == 1
     assert closeCounts[1] == 0
-    assert closeCounts[2] == 3
+    assert closeCounts[2] == 2
     assert closeCounts[3] == 0
     assert closeCounts[4] == 0
 

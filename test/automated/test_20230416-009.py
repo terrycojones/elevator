@@ -71,7 +71,7 @@ def testElevator():
     assert openCounts[1] == 0
     assert openCounts[2] == 1
     assert openCounts[3] == 0
-    assert openCounts[4] == 3
+    assert openCounts[4] == 2
 
     # Test close counts.
     closeCounts = stats.closeCounts
@@ -79,7 +79,7 @@ def testElevator():
     assert closeCounts[1] == 0
     assert closeCounts[2] == 1
     assert closeCounts[3] == 0
-    assert closeCounts[4] == 3
+    assert closeCounts[4] == 2
 
     # Test call button counts.
     callButtonCounts = stats.callButtonCounts

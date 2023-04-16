@@ -32,23 +32,28 @@ def pickDirectionBasedOnStopButtons(event, state):
     return None, None
 
 
-def pickDirectionBasedOnCallButtons(event, state):
+def pickDirectionBasedOnCallButtons(event, state, considerCurrentFloor=True):
     assert event.what in {ARRIVE, CLOSE}
+    assert state.floor == event.floor
 
-    # If one or more call buttons on the floor we are on is pressed, pick a
-    # direction based on these.
+    if considerCurrentFloor:
+        # If one or more call buttons on the floor we are on is pressed, pick a
+        # direction based on these.
 
-    if state.callButtons[event.floor][UP] and state.callButtons[event.floor][DOWN]:
-        # Both up and down call buttons are pressed on the floor we just arrived on.
-        # Go in the direction of the earliest press.
-        if state.callButtons[event.floor][UP] < state.callButtons[event.floor][DOWN]:
+        if state.callButtons[event.floor][UP] and state.callButtons[event.floor][DOWN]:
+            # Both up and down call buttons are pressed on the floor we just arrived on.
+            # Go in the direction of the earliest press.
+            if (
+                state.callButtons[event.floor][UP]
+                < state.callButtons[event.floor][DOWN]
+            ):
+                return event.floor, UP
+            else:
+                return event.floor, DOWN
+        elif state.callButtons[event.floor][UP]:
             return event.floor, UP
-        else:
+        elif state.callButtons[event.floor][DOWN]:
             return event.floor, DOWN
-    elif state.callButtons[event.floor][UP]:
-        return event.floor, UP
-    elif state.callButtons[event.floor][DOWN]:
-        return event.floor, DOWN
 
     # Look for call buttons on other floors.
     presses = []
@@ -66,13 +71,17 @@ def pickDirectionBasedOnCallButtons(event, state):
         floor = presses[0][1]
         return floor, UP if floor > state.floor else DOWN
 
-    # There were no call presses.
+    # There were no suitable call presses.
     return None, None
 
 
 def _rhs(value):
     # Produce either an "is" comparison or an "==" one for testing a value.
-    return ("is" if value in {None, True, False} else "==") + f" {value!r}"
+    # Weirdly, 0 in {None, False, True} is True (and 1 is "in" a set that
+    # has True in it). So I use "is" in the tests here.
+    return (
+        "is" if value is None or value is True or value is False else "=="
+    ) + f" {value!r}"
 
 
 def writeTest(elevator, testDir):

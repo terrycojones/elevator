@@ -40,7 +40,14 @@ def handle_CLOSE(closeEvent, elevator):
         buttonFloor, direction = pickDirectionBasedOnStopButtons(closeEvent, state)
 
         if direction is None:
-            buttonFloor, direction = pickDirectionBasedOnCallButtons(closeEvent, state)
+            # We cannot consider re-opening on our current floor. This is
+            # because we may be closing after opening for the exact same
+            # call. I.e., opening twice on the floor. It is not possible to
+            # clear the call button on arrival because we do not _always_
+            # know in which direction we will go next.
+            buttonFloor, direction = pickDirectionBasedOnCallButtons(
+                closeEvent, state, considerCurrentFloor=False
+            )
 
         if direction is None:
             # Nothing pressed. Stay here.
@@ -49,73 +56,47 @@ def handle_CLOSE(closeEvent, elevator):
                     Event(
                         CLEAR_DIRECTION,
                         None,
-                        direction=direction,
                         delay=0,
                         causedBy=closeEvent,
                     )
                 )
             state.direction = state.destination = None
         else:
-            if buttonFloor == state.floor:
-                # We were called from the floor we just closed the door on.
-                #
-                # Note: this cannot be from a stop button (see assert above), it
-                # must be from a call.
-                assert state.callButtons[state.floor][direction]
+            # We must be going to a different floor.
+            assert buttonFloor != state.floor
 
-                # TODO: This shouldn't be done so late, because we have
-                # just above decided to re-open. The call button should
-                # be cleared first. Need a test for this.
-                #
-                # I think this is now fixed.
-                if state.callButtons[state.floor][direction]:
-                    responseEvents.append(
-                        Event(
-                            CLEAR_CALL,
-                            state.floor,
-                            direction=direction,
-                            delay=delay,
-                            causedBy=closeEvent,
-                        )
-                    )
+            # Turn off (if it is on) the direction light on this floor for
+            # the direction we're going in.
+            if state.callButtons[state.floor][direction]:
                 responseEvents.append(
-                    Event(OPEN, state.floor, delay=delay, causedBy=closeEvent)
-                )
-                delay += elevator.openDoorDelay
-                responseEvents.append(
-                    Event(CLOSE, state.floor, delay=delay, causedBy=closeEvent)
-                )
-            else:
-                if state.callButtons[state.floor][direction]:
-                    responseEvents.append(
-                        Event(
-                            CLEAR_CALL,
-                            state.floor,
-                            direction=direction,
-                            delay=0,
-                            causedBy=closeEvent,
-                        )
+                    Event(
+                        CLEAR_CALL,
+                        state.floor,
+                        direction=direction,
+                        delay=0,
+                        causedBy=closeEvent,
                     )
+                )
 
-                if state.direction != direction:
-                    responseEvents.append(
-                        Event(
-                            SET_DIRECTION,
-                            None,
-                            direction=direction,
-                            delay=0,
-                            causedBy=closeEvent,
-                        )
-                    )
-                state.direction = direction
-                state.destination = buttonFloor
-                # Schedule the arrival at our next floor.
-                delay += elevator.interFloorDelay
-                nextFloor = state.floor + (1 if direction == UP else -1)
-                assert 0 <= nextFloor < elevator.floors
-                assert state.destination != state.floor
+            if state.direction != direction:
                 responseEvents.append(
-                    Event(ARRIVE, nextFloor, delay=delay, causedBy=closeEvent)
+                    Event(
+                        SET_DIRECTION,
+                        None,
+                        direction=direction,
+                        delay=0,
+                        causedBy=closeEvent,
+                    )
                 )
+
+            state.direction = direction
+            state.destination = buttonFloor
+            delay += elevator.interFloorDelay
+            nextFloor = state.floor + (1 if direction == UP else -1)
+            assert 0 <= nextFloor < elevator.floors
+            assert state.destination != state.floor
+            responseEvents.append(
+                Event(ARRIVE, nextFloor, delay=delay, causedBy=closeEvent)
+            )
 
     return responseEvents
